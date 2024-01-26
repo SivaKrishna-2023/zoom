@@ -1,12 +1,11 @@
 import React from 'react';
+
 import './App.css';
-import { ZoomMtg } from '@zoom/meetingsdk';
-
-
-ZoomMtg.preLoadWasm();
-ZoomMtg.prepareWebSDK();
+import ZoomMtgEmbedded from '@zoom/meetingsdk/embedded';
 
 function App() {
+
+  const client = ZoomMtgEmbedded.createClient();
 
   var authEndpoint = ''
   var sdkKey = ''
@@ -17,7 +16,6 @@ function App() {
   var userEmail = ''
   var registrantToken = ''
   var zakToken = ''
-  var leaveUrl = 'http://localhost:3000'
 
   function getSignature(e) {
     e.preventDefault();
@@ -38,35 +36,26 @@ function App() {
   }
 
   function startMeeting(signature) {
-    document.getElementById('zmmtg-root').style.display = 'block'
 
-    ZoomMtg.init({
-      leaveUrl: leaveUrl,
-      patchJsMedia: true,
-      success: (success) => {
-        console.log(success)
+    let meetingSDKElement = document.getElementById('meetingSDKElement');
 
-        ZoomMtg.join({
-          signature: signature,
-          sdkKey: sdkKey,
-          meetingNumber: meetingNumber,
-          passWord: passWord,
-          userName: userName,
-          userEmail: userEmail,
-          tk: registrantToken,
-          zak: zakToken,
-          success: (success) => {
-            console.log(success)
-          },
-          error: (error) => {
-            console.log(error)
-          }
-        })
-
-      },
-      error: (error) => {
+    client.init({zoomAppRoot: meetingSDKElement, language: 'en-US', patchJsMedia: true}).then(() => {
+      client.join({
+        signature: signature,
+        sdkKey: sdkKey,
+        meetingNumber: meetingNumber,
+        password: passWord,
+        userName: userName,
+        userEmail: userEmail,
+        tk: registrantToken,
+        zak: zakToken
+      }).then(() => {
+        console.log('joined successfully')
+      }).catch((error) => {
         console.log(error)
-      }
+      })
+    }).catch((error) => {
+      console.log(error)
     })
   }
 
@@ -74,6 +63,11 @@ function App() {
     <div className="App">
       <main>
         <h1>Zoom Meeting SDK Sample React</h1>
+
+        {/* For Component View */}
+        <div id="meetingSDKElement">
+          {/* Zoom Meeting SDK Component View Rendered Here */}
+        </div>
 
         <button onClick={getSignature}>Join Meeting</button>
       </main>
